@@ -1,0 +1,194 @@
+---
+title: "MKT_618_final_group_project"
+author: "Manaswi"
+date: "2024-12-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+install.packages("psych")
+install.packages("ggplot2")
+install.packages("factoextra")
+
+library(psych)        # For factor analysis
+library(cluster)      # For clustering analysis
+library(ggplot2)      # For visualizations
+library(factoextra)   # For visualizing clusters
+
+# Load dataset
+data <- Smart_Phone_Survey  # Replace with the path to your dataset
+
+```
+
+# Step 1: Select Relevant Columns
+```{}
+
+# For Q6
+selected_data_q6 <- data[, c("imp_brand", "imp_screen_size", "imp_screen_resolution", "imp_battery_life", "imp_appearance", "imp_storage","imp_weight", "imp_durability", "imp_price","imp_wifi", "imp_operating", "imp_camera")]
+
+
+# For Q7 
+selected_data_q7 <- data[, c("psych_stay_productive", "psych_successful_career","psych_price_important", "psych_strict_budget","psych_search_best_deal", "psych_tech_prestige_symbol", "psych_latest_phone_functions", "psych_own_latest_tech","psych_smartphone_identity", "psych_brand_reflect_self","psych_care_others", "psych_follow_fashion")]
+
+```
+
+```{}
+# Choose dataset for analysis
+selected_data <- selected_data_q6 
+```
+
+# Step 2: Standardize Data
+
+```{}
+scaled_data <- scale(selected_data)
+scaled_data
+```
+
+#Scree plot
+```{}
+# Perform PCA with the same nfactors = 3 (as you did before)
+fa_result <- principal(scaled_data, nfactors = 2, rotate = "varimax")
+
+# Plot the scree plot
+plot(fa_result$values, type = "b", pch = 19, 
+     xlab = "Factor Number", ylab = "Eigenvalue",
+     main = "Scree Plot")
+```
+
+
+# Step 3: Perform Factor Analysis
+```{}
+fa_result <- principal(scaled_data, nfactors = 2, rotate = "varimax", scores = TRUE)
+print(fa_result)
+
+# Extract factor scores
+factor_scores <- as.data.frame(fa_result$scores)
+
+print(fa_result$loadings)
+```
+
+```{}
+graphics.off()  # Resets all graphics devices
+```
+
+
+# Step 4: Determine Optimal Number of Clusters
+```{}
+fviz_nbclust(factor_scores, kmeans, method = "silhouette")
+```
+
+# Step 5: Perform K-Means Clustering
+
+```{}
+optimal_clusters <- 3  # Adjust based on silhouette plot
+kmeans_result <- kmeans(factor_scores, centers = optimal_clusters, nstart = 25)
+```
+
+# Step 6: Profile Clusters
+
+```{}
+cluster_profile <- aggregate(selected_data, by = list(Cluster = kmeans_result$cluster), FUN = mean)
+print(cluster_profile)
+```
+
+
+# Step 7: Visualize Clusters
+```{}
+ggplot(factor_scores, aes(x = RC1, y = RC2, color = as.factor(kmeans_result$cluster))) +
+  geom_point(size = 2) +
+  labs(x = "Performance and Utility", y = "Aesthetic and Design", color = "Cluster") +
+  theme_minimal()
+
+```
+
+
+###### NOW FOR Q7:#######
+
+```{}
+# Choose dataset for analysis
+selected_data2 <- selected_data_q7
+```
+
+# Step 2: Standardize Data
+
+```{}
+scaled_data2 <- scale(selected_data2)
+scaled_data2
+```
+
+#Scree plot
+```{}
+# Perform PCA with the same nfactors = 3 (as you did before)
+fa_result2 <- principal(scaled_data2, nfactors = 2, rotate = "varimax")
+
+# Plot the scree plot
+plot(fa_result2$values, type = "b", pch = 19, 
+     xlab = "Factor Number", ylab = "Eigenvalue",
+     main = "Scree Plot")
+```
+
+
+# Step 3: Perform Factor Analysis
+```{}
+
+fa_result2 <- principal(scaled_data2, nfactors = 5, rotate = "varimax")  
+
+# Extract factor scores
+factor_scores2 <- as.data.frame(fa_result2$scores)
+
+print(fa_result2$loadings)
+```
+
+
+
+# Step 4: Determine Optimal Number of Clusters
+```{}
+fviz_nbclust(factor_scores2, kmeans, method = "silhouette") +
+  labs(title = "Optimal Number of Clusters (Silhouette Method)")
+
+```
+
+# Step 5: Perform K-Means Clustering
+
+```{}
+# Choose the optimal number of clusters based on the silhouette plot
+optimal_clusters2 <- 2
+
+# Perform k-means clustering
+kmeans_result2 <- kmeans(factor_scores2, centers = optimal_clusters2, nstart = 25)
+
+# Add cluster labels to the factor scores for easier visualization
+factor_scores2$Cluster <- as.factor(kmeans_result2$cluster)
+
+```
+
+# Step 6: Profile Clusters
+
+```{}
+# Compute the mean of the original variables for each cluster
+cluster_profile2 <- aggregate(selected_data2, by = list(Cluster = kmeans_result2$cluster), FUN = mean)
+
+# Print the cluster profiles for interpretation
+print(cluster_profile2)
+
+```
+
+
+# Step 7: Visualize Clusters
+```{}
+
+ggplot(factor_scores2, aes(x = RC1, y = RC2, color = Cluster)) +
+  geom_point(size = 2) +
+  labs(
+    title = "Cluster Visualization (Q7)",
+    x = "Factor 1: Social Status & Identity",
+    y = "Factor 2: Tech Enthusiasm & Innovation",
+    color = "Cluster"
+  ) +
+  theme_minimal()
+
+
+```
+
+
